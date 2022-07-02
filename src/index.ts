@@ -1,4 +1,4 @@
-import got from "got"
+import { Axios } from "axios"
 import { App } from "piyo"
 import z from "zod"
 
@@ -8,6 +8,12 @@ const { APP_URL, CONTACT_URL } = z
         CONTACT_URL: z.string(),
     })
     .parse(process.env)
+
+const client = new Axios({
+    headers: {
+        "User-Agent": `nicoseriesfeed/1.0 (+${APP_URL})`,
+    },
+})
 
 const app = new App()
 
@@ -22,14 +28,13 @@ app.get("/series/:id/jsonfeed", async ctx => {
     if (typeof id !== "string") throw ctx.throw(400)
     if (!/^[0-9]{1,8}$/.test(id)) throw ctx.throw(400)
 
-    const res = await got(`https://nvapi.nicovideo.jp/v2/series/${id}`, {
-        searchParams: {
+    const res = await client.get<unknown>(`https://nvapi.nicovideo.jp/v2/series/${id}`, {
+        params: {
             page: "1",
             pageSize: "500",
         },
         responseType: "json",
         headers: {
-            "User-Agent": `nicoseriesfeed/1.0 (+${APP_URL})`,
             "X-Frontend-Id": "6",
             "X-Frontend-Version": "0",
         },
@@ -60,7 +65,7 @@ app.get("/series/:id/jsonfeed", async ctx => {
                 ),
             }),
         })
-        .parse(res.body)
+        .parse(res.data)
 
     ctx.set("Cache-Control", `max-age=${1 * 60 * 60}, public`)
 

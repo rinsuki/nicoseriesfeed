@@ -28,19 +28,17 @@ app.get("/series/:id/jsonfeed", async ctx => {
     if (typeof id !== "string") throw ctx.throw(400)
     if (!/^[0-9]{1,8}$/.test(id)) throw ctx.throw(400)
 
-    const res = await client.get<unknown>(`https://nvapi.nicovideo.jp/v2/series/${id}`, {
+    const res = await client.get<string>(`https://nvapi.nicovideo.jp/v2/series/${id}`, {
         params: {
             page: "1",
             pageSize: "500",
         },
-        responseType: "json",
+        responseType: "text",
         headers: {
             "X-Frontend-Id": "6",
             "X-Frontend-Version": "0",
         },
     })
-
-    console.log(res.data)
 
     const { data } = z
         .object({
@@ -67,7 +65,7 @@ app.get("/series/:id/jsonfeed", async ctx => {
                 ),
             }),
         })
-        .parse(res.data)
+        .parse(JSON.parse(res.data))
 
     ctx.set("Cache-Control", `max-age=${1 * 60 * 60}, public`)
 

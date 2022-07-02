@@ -40,6 +40,8 @@ app.get("/series/:id/jsonfeed", async ctx => {
         },
     })
 
+    console.log(res.data)
+
     const { data } = z
         .object({
             data: z.object({
